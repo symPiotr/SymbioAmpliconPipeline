@@ -1,0 +1,14 @@
+#### This is the list of primers typically used in amplicon seq assays by the Symbiosis Evolution Group
+#### Please hash out those that you have not used in your experiment!
+
+##region_name   #R1_primer_sequence     #R2_primer_sequence
+
+#### Standard primers
+# COI gene: BF3hym, BR2. BF3 and BR2 were designed by Elbrecht 2019 https://peerj.com/articles/7745/, with BF3 modified by Piotr for greater generality 
+COI	CCHGAYATRKCHTWYCCHCG    TCDGGRTGNCCRAARAAYCA
+# 16S_V4 region: primers 515F, 806R
+16SV4  GTGYCAGCMGCCGCGGTAA     GGACTACNVGGGTWTCTAAT
+16SV1V2  AGMGTTYGATYMTGGCTCAG  TGCTGCCTCCCGTAGGAGT
+ITS2  GTGARTCATCGAATCTTTG  CCTCCGCTTATTGATATGC
+ITS1a  TGGTCATTTAGAGGAAGTAA  GCGTTCTTCATCGAT
+nuSSU	CGATAACGAACGAGACCT	ANCCATTCAATCGGTANT
