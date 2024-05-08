@@ -64,6 +64,7 @@ done
 
 ```
 (base) piotr.lukasik@azor:~/20240507_amplicons$ multiSPLIT.py ~/20240507_amplicons/sample_subset2.txt /mnt/qnap/users/symbio/raw_data/illumina/amplicon_sequencing/20240430_NextSeq_batch21/GDF /mnt/qnap/users/symbio/SymbioAmpliconPipeline/primer_list_Entomophthora.txt /home/piotr.lukasik/20240507_amplicons/split4 0 16
+
 multiSPLIT v. 0.21 ... running!
 Splitting complete! The process lasted 8.7 seconds
 All output files - bins corresponding to different targets - are at your specified output dir, /home/piotr.lukasik/20240507_amplicons/split4
