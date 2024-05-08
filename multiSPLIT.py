@@ -3,24 +3,32 @@
 ### Program requirements test and tips should go here
 import sys, os, re, time, multiprocessing
 if len(sys.argv) != 7:
-	sys.exit("""ERROR! CHECK YOUR INPUT PARAMETERS!
--------- multiSPLIT v. 0.1 by Malgorzata Lipowska & Symbio Lab; last changes on 25.04.2024 by Piotr Lukasik ----------
+	sys.exit("""
+-------- multiSPLIT v. 0.21 by Malgorzata Lipowska & the Symbio Lab; last changes on 07.05.2024 by Piotr Lukasik ----------
 
 This script reads a list of fastq files (gzipped or uncompressed) corresponding to multi-target amplicon samples
 It then screens all reads for the presence of specified primers (potentially preceded by variable-length or informative inserts)
 It trims inserts and primers and outputs such filtered reads, sorted by target regions, to directories representing these regions.
+It then outputs the statistics - numbers of reads in each of the 
 
 Usage: 
     multiSPLIT.py <sample_list> <input_dir> <primer_list> <output_dir> <informative_indexes?> <number_of_cores>
 
 Please provide:
-1) sample list with information about your libraries created in following manner (tab-separated):
+1) FULL path to the sample list file, with information about your libraries created in following manner (tab-separated):
     SampleName SampleName_R1.fastq	SampleName_R2.fastq
     OR
     SampleName SampleName_R1.fq.gz	SampleName_R2.fq.gz
+### if your files have name format SampleName_R1.fq.gz, SampleName_R2.fq.gz, you can generate the list using a loop ---
+for file in *_R1.fq.gz; do
+    SampleName=`basename $file _R1.fq.gz `
+    SampleNameMod=$(echo "$SampleName" | sed 's/-/_/g' | sed 's/_S[0-9]\+$//g')
+    echo $SampleNameMod "$SampleName"_R1.fq.gz "$SampleName"_R2.fq.gz >> sample_list.txt
+done
+
 
 2) FULL path to the directory with R1 and R2 reads for all the amplicon libraries that you want to analyse,
-    e.g.: /home/users/symbio/20240424_amplicons/raw_data)
+    e.g.: /mnt/qnap/users/symbio/raw_data/illumina/amplicon_sequencing/20240430_NextSeq_batch21/GDF)
     Note that shortcuts such as "." may not work!
 
 3) Path to the primer list, where lines represent different primers - for example, "COI	CCHGAYATRGCHTTYCCHCG	CDGGRTGNCCRAARAAYCA"
@@ -28,8 +36,8 @@ Please provide:
     Or perhaps:         /mnt/qnap/users/symbio/SymbioAmpliconPipeline/primer_list_Entomophthora.txt ?
    
 4) Path to the output directory
-    e.g.: /home/users/symbio/20240424_amplicons/analysis1)
-
+    e.g.: /home/piotr.lukasik/20240507_amplicons/split1)
+    
 5) Information on whether the last two characters of your sample name indicate well number
    (Have you consiously used informative inserts in your library prep procedure?)
     1=True, 0=False
@@ -37,8 +45,12 @@ Please provide:
 
 6) Number of cores to use
     e.g. 16
-    
 """)
+
+""" ### To be added further down the line:
+5) Information on whether the output files should be gzipped (fastq.gz), or retained in uncompressed form (fastq)
+    1 = GZIP!, 0 = leave uncompressed!
+"""
 
 Script, sample_list, path_to_your_raw_data, primers_file, output_path, well_info, core_no = sys.argv
 
@@ -56,25 +68,29 @@ core_limit = int(core_no)
 
 ### functions
 # fastq importer to list of lists
+### modified so that files with gz extension are automatically recognized
 def FastqImport(fastq_file):
     if fastq_file.strip().split(".")[-1] == "gz":
-        os.system("gunzip -c %s > %s/temp.fq" % (fastq_file, Output_Dir))
-        fastq_file = "%s/temp.fq" % Output_Dir
-	input = open(fastq_file,"r")
-	fastq=[]
-	line_counter = 0
-	for line in input:
-		if line_counter == 0:
-			seq_list=[]
-		seq_list.append(line.strip())
-		line_counter += 1
-		if line_counter == 4:
-			fastq.append(seq_list)
-			line_counter = 0
-	input.close()
-	if os.path.exists("%s/temp.fq" % Output_Dir):
-        os.remove("%s/temp.fq" % Output_Dir)
-	return(fastq)
+        os.system("gunzip -c %s > %s/%s_temp.fq" % (fastq_file, output_path, fastq_file))
+        input = open("%s/%s_temp.fq" % (output_path, fastq_file),"r")
+    else:
+        input = open(fastq_file,"r")
+    fastq=[]
+    line_counter = 0
+    for line in input:
+        if line_counter == 0:
+            seq_list=[]
+        seq_list.append(line.strip())
+        line_counter += 1
+        if line_counter == 4:
+            fastq.append(seq_list)
+            line_counter = 0
+    input.close()
+    if os.path.exists("%s/%s_temp.fq" % (output_path, fastq_file)):
+        os.remove("%s/%s_temp.fq" % (output_path, fastq_file))
+    else:
+        print("NO          %s/%s_temp.fq" % (output_path, fastq_file))
+    return(fastq)
 
 # ambiguous bases dictionary importer
 def IUPACImport(IUPAC_file):
@@ -316,7 +332,7 @@ def MultiPISS(samples_list, core_limit):
 	with multiprocessing.Pool(core_limit) as pool:
 		pool.map(PrimerInsertSequenceSort,samples_list)
 
-def Time_PISS(samples_list):
+def Time_PISS(samples_list):   ### Is this ever used? Or can it be deleted?
 	time_start = time.time()
 	for sample in samples_list:
 		PrimerInsertSequenceSort(sample)
@@ -327,7 +343,17 @@ def Time_MultiPISS(samples_list,core_limit):
 	time_start = time.time()
 	MultiPISS(samples_list,core_limit)
 	duration = str(round(time.time() - time_start,2))
-	print("the process lasted " + duration + " seconds")
+	print("Splitting complete! The process lasted " + duration + " seconds")
+	print("All output files - bins corresponding to different targets - are at your specified output dir, %s" % output_path)
+	print("Splitting statistics below, and in file 'splitting_stats.txt' in your output directory")
 	
 #Time_PISS(samples_list)
+print("\nmultiSPLIT v. 0.21 ... running!")
+
 Time_MultiPISS(samples_list,core_limit)
+
+
+###### Computing and printing splitting statistics - reusing Piotr's standalone script "multiSPLIT_stats.py"
+
+os.chdir(output_path)
+os.system("multiSPLIT_stats.py %s %s" % (list_file, output_path))
