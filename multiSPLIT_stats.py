@@ -5,7 +5,7 @@ import os, sys
 if len(sys.argv) != 3:
 	sys.exit('\nmultiSPLIT_stats.py v. 0.2. Piotr Łukasik, 7th May 2024\n'
 	         '-------------------------------------------------------------\n'
-	         'This script computes the splitting stats for an amplicon dataset processed by the script MultiSPLIT: \n'
+	         'This script computes the splitting stats for an amplicon dataset processed by the script MultiSPLIT:  \n'
 	         'for all processed libraries, it checks how many reads have been classified to different targets. \n'
 	         'The results are printed on the screen, and in the summary file in the "split" folder.\n\n'
 	         '    Usage: ./multiSPLIT_stats.py <library_list> <splitting_dir>  \n'
